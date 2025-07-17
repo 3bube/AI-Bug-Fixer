@@ -38,7 +38,7 @@ export const handleCallback = async (req: Request, res: Response) => {
 
     const accessToken = response.data.access_token;
 
-    res.redirect(`dashboard?token=${accessToken}`);
+    res.redirect(`/dashboard?token=${accessToken}`);
   } catch (error) {
     console.error("Error exchanging code for access token:", error);
     return res.status(500).json({ error: "Internal Server Error" });
