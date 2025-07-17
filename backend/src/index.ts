@@ -4,6 +4,9 @@ import morgan from "morgan";
 import cors from "cors";
 import prisma from "./utils/prisma";
 
+// routes
+import githubRoutes from "./routes/github.routes";
+
 dotenv.config();
 
 const app = express();
@@ -21,6 +24,8 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
+
+app.use("/api/github", githubRoutes);
 
 const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
