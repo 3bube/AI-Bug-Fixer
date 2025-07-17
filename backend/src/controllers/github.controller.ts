@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import axios from "axios";
 
-const REDIRECT_URI = "http://localhost:5000/github/callback";
+const REDIRECT_URI = process.env.GITHUB_REDIRECT_URI;
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
