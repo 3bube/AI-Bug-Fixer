@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import axios from "axios";
 
 const REDIRECT_URI = process.env.GITHUB_REDIRECT_URI;
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
@@ -23,21 +22,25 @@ export const handleCallback = async (req: Request, res: Response) => {
   }
 
   try {
-    const response = await axios.post(
+    const response = await fetch(
       "https://github.com/login/oauth/access_token",
       {
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        code,
-        redirect_uri: REDIRECT_URI,
-      },
-      {
-        headers: { Accept: "application/json" },
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          code,
+          redirect_uri: REDIRECT_URI,
+        }),
       }
     );
 
-    const accessToken = (response.data as { access_token: string })
-      .access_token;
+    const data = await response.json();
+    const accessToken = (data as { access_token: string }).access_token;
 
     res.redirect(`/dashboard?token=${accessToken}`);
   } catch (error) {
