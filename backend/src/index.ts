@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import cors from "cors";
+import prisma from "./utils/prisma";
 
 dotenv.config();
 
@@ -16,6 +17,21 @@ app.get("/", (req, res) => {
   res.send("Hello, TaskTracker!");
 });
 
-app.listen(port, () => {
+// Health check endpoint for Render
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
+const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+});
+
+// Handle graceful shutdown
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received, shutting down gracefully");
+  await prisma.$disconnect();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
 });
