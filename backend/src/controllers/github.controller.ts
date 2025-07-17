@@ -36,7 +36,8 @@ export const handleCallback = async (req: Request, res: Response) => {
       }
     );
 
-    const accessToken = response.data.access_token;
+    const accessToken = (response.data as { access_token: string })
+      .access_token;
 
     res.redirect(`/dashboard?token=${accessToken}`);
   } catch (error) {
