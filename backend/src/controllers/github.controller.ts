@@ -42,7 +42,7 @@ export const handleCallback = async (req: Request, res: Response) => {
     const data = await response.json();
     const accessToken = (data as { access_token: string }).access_token;
 
-    res.redirect(`/auth/callback?code=${accessToken}`);
+    res.redirect(`http://localhost:3000/auth/callback?code=${accessToken}`);
   } catch (error) {
     console.error("Error exchanging code for access token:", error);
     return res.status(500).json({ error: "Internal Server Error" });
