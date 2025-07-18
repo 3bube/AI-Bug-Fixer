@@ -146,7 +146,7 @@ export const getPullRequestById = async (req: Request, res: Response) => {
     res.status(200).json(pullRequest);
   } catch (error) {
     console.error("Error fetching pull request:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Inte  rnal Server Error" });
   }
 };
 
