@@ -48,3 +48,30 @@ export const handleCallback = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const verifyToken = async (req: Request, res: Response) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).json({ error: "Token not provided" });
+  }
+
+  try {
+    const response = await fetch("https://api.github.com/user", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Invalid token" });
+    }
+
+    const userData = await response.json();
+    res.status(200).json({ valid: true, userData });
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
