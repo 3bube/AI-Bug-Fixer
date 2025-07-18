@@ -36,7 +36,7 @@ export const handleCallback = async (req: Request, res: Response) => {
           client_id: CLIENT_ID,
           client_secret: CLIENT_SECRET,
           code,
-          redirect_uri: REDIRECT_URI,
+          // redirect_uri: REDIRECT_URI,
         }),
       }
     );
