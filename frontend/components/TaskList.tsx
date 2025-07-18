@@ -10,7 +10,7 @@ import {
   Trash2,
   Calendar,
 } from "lucide-react";
-import { Task } from "../types/task";
+import { Task } from "../types/prs";
 
 interface TaskListProps {
   tasks: Task[];

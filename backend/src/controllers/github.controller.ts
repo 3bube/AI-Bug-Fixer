@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { GithubService } from "../services/github.services";
 
 const REDIRECT_URI = process.env.GITHUB_REDIRECT_URI;
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
@@ -91,5 +92,113 @@ export const verifyToken = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error verifying token:", error);
     return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getAllUserPullRequests = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const per_page = parseInt(req.query.per_page as string) || 10;
+
+    const githubService = new GithubService(
+      req.headers.authorization as string
+    );
+
+    const { pullRequests, total, hasNextPage } =
+      await githubService.getAllUserPullRequests(page, per_page);
+
+    // Return pagination metadata along with the results
+    res.status(200).json({
+      data: pullRequests,
+      pagination: {
+        currentPage: page,
+        perPage: per_page,
+        total,
+        totalPages: Math.ceil(total / per_page),
+        hasNextPage,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user pull requests:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getPullRequestById = async (req: Request, res: Response) => {
+  const prId = parseInt(req.params.id);
+  const { owner, repo } = req.params;
+
+  if (isNaN(prId)) {
+    return res.status(400).json({ error: "Invalid pull request ID" });
+  }
+
+  if (!owner || !repo) {
+    return res
+      .status(400)
+      .json({ error: "Repository owner and name are required" });
+  }
+
+  try {
+    const githubService = new GithubService(
+      req.headers.authorization as string
+    );
+    const pullRequest = await githubService.getPullRequest(owner, repo, prId);
+    res.status(200).json(pullRequest);
+  } catch (error) {
+    console.error("Error fetching pull request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getPullRequests = async (req: Request, res: Response) => {
+  const { repoOwner, repoName } = req.params;
+
+  if (!repoOwner || !repoName) {
+    return res
+      .status(400)
+      .json({ error: "Repository owner and name are required" });
+  }
+
+  try {
+    const githubService = new GithubService(
+      req.headers.authorization as string
+    );
+    const pullRequests = await githubService.getPullRequests(
+      repoOwner,
+      repoName
+    );
+    res.status(200).json(pullRequests);
+  } catch (error) {
+    console.error("Error fetching pull requests:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const approveFix = async (req: Request, res: Response) => {
+  const { owner, repo, filePath, newContent } = req.body;
+
+  if (!owner || !repo || !filePath || !newContent) {
+    return res.status(400).json({ error: "Missing required parameters" });
+  }
+
+  try {
+    const githubService = new GithubService(
+      req.headers.authorization as string
+    );
+    const result = await githubService.applyCodeFix(
+      owner,
+      repo,
+      filePath,
+      newContent
+    );
+
+    if (result) {
+      res.status(200).json({ message: "Fix approved successfully" });
+    } else {
+      res.status(400).json({ error: "Failed to approve fix" });
+    }
+  } catch (error) {
+    console.error("Error approving fix:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };

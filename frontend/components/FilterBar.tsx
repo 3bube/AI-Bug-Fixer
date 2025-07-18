@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Search, Filter, Calendar, Tag, AlertCircle } from "lucide-react";
-import { TaskFilters } from "@/types/task";
+import { TaskFilters } from "@/types/prs";
 
 interface FilterBarProps {
   filters: TaskFilters;

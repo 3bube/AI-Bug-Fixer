@@ -9,7 +9,7 @@ import {
   Folder,
   Plus,
 } from "lucide-react";
-import { ViewMode } from "../types/task";
+import { ViewMode } from "../types/prs";
 
 interface SidebarProps {
   activeView: ViewMode;

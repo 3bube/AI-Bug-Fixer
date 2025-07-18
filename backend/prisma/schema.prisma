@@ -13,3 +13,20 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+model PullRequest {
+  id          String   @id @default(cuid())
+  githubId    String   @unique
+  title       String
+  body        String?
+  diff        String?
+  analysis    String?
+  suggestions String?  // Added this field for PR suggestions
+  number      Int
+  status      String   @default("Pending")
+  repoOwner   String
+  repoName    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

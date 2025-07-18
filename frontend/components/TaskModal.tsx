@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { X, Calendar, Tag, AlertCircle, Folder } from "lucide-react";
-import { Task } from "../types/task";
+import { Task } from "../types/prs";
 
 interface TaskModalProps {
   isOpen: boolean;

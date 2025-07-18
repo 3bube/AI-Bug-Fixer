@@ -1,4 +1,4 @@
-import { Task } from "../types/task";
+import { Task } from "../types/prs";
 
 export const parseNaturalLanguage = (input: string): Partial<Task> => {
   const task: Partial<Task> = {

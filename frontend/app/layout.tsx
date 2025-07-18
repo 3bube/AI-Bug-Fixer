@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { QueryProvider, ReactQueryProvider } from "@/context/QueryContext";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -23,11 +24,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="en" className="dark">
+      <body className="bg-gray-900 text-gray-100 min-h-screen">
+        <div className="container mx-auto px-4 py-8">
+          <header className="mb-8">
+            <h1 className="text-3xl font-bold text-blue-400">AI Bug Fixer</h1>
+            <p className="text-gray-400 mt-2">
+              Autonomous bug detection and fixing
+            </p>
+          </header>
+          <ReactQueryProvider>
+            <QueryProvider>{children}</QueryProvider>
+          </ReactQueryProvider>
+        </div>
       </body>
     </html>
   );
