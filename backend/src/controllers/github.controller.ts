@@ -41,15 +41,26 @@ export const handleCallback = async (req: Request, res: Response) => {
       }
     );
 
+    console.log("Response status:", response);
+
     const data = await response.json();
 
     console.log("Access token response:", data);
 
-    const accessToken = (data as { access_token: string }).access_token;
+    if (!data.access_token) {
+      console.error("No access token received:", data);
+      return res
+        .status(400)
+        .json({ error: "Failed to get access token", details: data });
+    }
+
+    const accessToken = data.access_token;
 
     console.log("Access token:", accessToken);
 
-    res.redirect(`http://localhost:3000/auth/callback?code=${accessToken}`);
+    // Redirect with token parameter instead of code
+    const frontendURL = process.env.FRONTEND_URL || "http://localhost:3000";
+    res.redirect(`${frontendURL}/auth/callback?token=${accessToken}`);
   } catch (error) {
     console.error("Error exchanging code for access token:", error);
     return res.status(500).json({ error: "Internal Server Error" });
