@@ -21,6 +21,8 @@ export const handleCallback = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Code not provided" });
   }
 
+  console.log("Received code:", code);
+
   try {
     const response = await fetch(
       "https://github.com/login/oauth/access_token",
@@ -40,7 +42,12 @@ export const handleCallback = async (req: Request, res: Response) => {
     );
 
     const data = await response.json();
+
+    console.log("Access token response:", data);
+
     const accessToken = (data as { access_token: string }).access_token;
+
+    console.log("Access token:", accessToken);
 
     res.redirect(`http://localhost:3000/auth/callback?code=${accessToken}`);
   } catch (error) {
