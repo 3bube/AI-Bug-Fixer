@@ -1,3 +1,4 @@
+// @ts-ignore
 import Groq from "groq-sdk";
 
 const groq = new Groq({
