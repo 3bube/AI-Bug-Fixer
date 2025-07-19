@@ -1,0 +1,12 @@
+node_modules
+.env.local
+.env
+dist
+build
+.git
+.gitignore
+README.md
+Procfile
+render.yaml
+RENDER_DEPLOYMENT.md
+build.sh
