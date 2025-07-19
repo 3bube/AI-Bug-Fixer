@@ -28,21 +28,19 @@ app.get("/health", (req, res) => {
 app.use("/api/github", githubRoutes);
 
 // For Vercel deployment
-if (process.env.NODE_ENV !== "production") {
-  const server = app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
+const server = app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
-  // Handle graceful shutdown
-  process.on("SIGTERM", async () => {
-    console.log("SIGTERM received, shutting down gracefully");
-    await prisma.$disconnect();
-    server.close(() => {
-      console.log("Server closed");
-      process.exit(0);
-    });
+// Handle graceful shutdown
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received, shutting down gracefully");
+  await prisma.$disconnect();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
   });
-}
+});
 
 // Export the Express app for Vercel
 export default app;
