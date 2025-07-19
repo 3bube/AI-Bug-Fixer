@@ -7,12 +7,19 @@ type ApproveFixVariables = {
   repo: string;
   filePath: string;
   newContent: string;
+  pullNumber: number;
 };
 
 export const useApproveFix = () => {
   return useMutation({
-    mutationFn: ({ owner, repo, filePath, newContent }: ApproveFixVariables) =>
-      approveFix(owner, repo, filePath, newContent),
+    mutationFn: ({
+      owner,
+      repo,
+      filePath,
+      newContent,
+      pullNumber,
+    }: ApproveFixVariables) =>
+      approveFix(owner, repo, filePath, newContent, pullNumber),
     onSuccess: (data: any) => {
       console.log("Fix approved successfully:", data);
     },

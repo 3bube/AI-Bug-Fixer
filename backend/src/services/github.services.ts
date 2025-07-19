@@ -88,48 +88,101 @@ export class GithubService {
     owner: string,
     repo: string,
     filePath: string,
-    newContent: string
+    newContent: string,
+    pullNumber?: number
   ) {
     try {
-      let sha;
+      const { execSync } = require("child_process");
+      const fs = require("fs");
+      const path = require("path");
+      const os = require("os");
 
-      try {
-        // Try to get the file's SHA if it exists
-        const { data: file } = await this.octokit.repos.getContent({
-          owner,
-          repo,
-          path: filePath,
-        });
-
-        // If file is an array, it's a directory, not a file
-        if (Array.isArray(file)) {
-          throw new Error(`Path ${filePath} is a directory, not a file`);
-        }
-
-        sha = file.sha;
-      } catch (error: any) {
-        // File doesn't exist, no SHA needed for creation
-        if (error.status === 404) {
-          console.log(`File ${filePath} does not exist, will create new file`);
-        } else {
-          // Rethrow other errors
-          throw error;
-        }
+      // If no pull number provided, we need to find it or create a branch
+      if (!pullNumber) {
+        throw new Error("Pull request number is required for this fix method");
       }
 
-      await this.octokit.repos.createOrUpdateFileContents({
+      // Get pull request details
+      const { data: pullRequest } = await this.octokit.pulls.get({
         owner,
         repo,
-        path: filePath,
-        message: `Apply suggested fix to ${filePath}`,
-        content: Buffer.from(newContent).toString("base64"),
-        sha, // Include SHA if updating, undefined if creating new file
+        pull_number: pullNumber,
       });
 
-      console.log(`Successfully applied fix to ${filePath}`);
-      return true;
-    } catch (error) {
+      const branchName = pullRequest.head.ref;
+      const forkRepo = pullRequest.head.repo.full_name;
+      const tempDir = path.join(os.tmpdir(), `fix-${Date.now()}`);
+
+      // Create temporary directory using Node.js fs
+      fs.mkdirSync(tempDir, { recursive: true });
+      const originalCwd = process.cwd();
+
+      try {
+        // Change to temp directory
+        process.chdir(tempDir);
+
+        // Clone the forked repository
+        console.log(`Cloning repository: ${forkRepo}`);
+        execSync(`git clone https://github.com/${forkRepo}.git`, {
+          stdio: "inherit",
+        });
+
+        const repoDir = path.join(tempDir, forkRepo.split("/")[1]);
+        process.chdir(repoDir);
+
+        // Check out the pull request branch
+        console.log(`Checking out branch: ${branchName}`);
+        execSync(`git checkout ${branchName}`, { stdio: "inherit" });
+
+        // Write the new content to the file
+        const fullFilePath = path.join(repoDir, filePath);
+        console.log(`Writing fix to: ${fullFilePath}`);
+
+        // Ensure directory exists using Node.js fs instead of shell command
+        const fileDir = path.dirname(fullFilePath);
+        fs.mkdirSync(fileDir, { recursive: true });
+
+        // Write the new content
+        fs.writeFileSync(fullFilePath, newContent, "utf8");
+
+        // Commit and push changes
+        execSync("git add .", { stdio: "inherit" });
+        execSync(`git commit -m "Apply suggested fix to ${filePath}"`, {
+          stdio: "inherit",
+        });
+        execSync(`git push origin ${branchName}`, { stdio: "inherit" });
+
+        console.log(
+          `Successfully applied fix to ${filePath} and pushed to ${branchName}`
+        );
+        return true;
+      } finally {
+        // Always return to original directory and clean up
+        process.chdir(originalCwd);
+        try {
+          // Use Node.js fs to remove directory instead of shell command
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        } catch (cleanupError) {
+          console.warn("Failed to cleanup temp directory:", tempDir);
+        }
+      }
+    } catch (error: any) {
       console.error(`Failed to apply fix to ${filePath}:`, error);
+
+      if (error.message.includes("Permission denied")) {
+        throw new Error(
+          `Git permission denied. Please ensure you have push access to the repository.`
+        );
+      } else if (error.message.includes("not found")) {
+        throw new Error(
+          `Repository or branch not found. Please check the pull request details.`
+        );
+      } else if (error.message.includes("Authentication failed")) {
+        throw new Error(
+          `Git authentication failed. Please ensure your credentials are correct.`
+        );
+      }
+
       throw error;
     }
   }

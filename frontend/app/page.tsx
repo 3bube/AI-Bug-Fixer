@@ -21,9 +21,9 @@ export default function LoginPage() {
         <Github className="w-5 h-5" />
         Sign in with GitHub
       </button>
-      <p className="text-gray-500 text-sm mt-4">
+      {/* <p className="text-gray-500 text-sm mt-4">
         {"(Requires a GitHub OAuth App setup with Client ID)"}
-      </p>
+      </p> */}
     </div>
   );
 }

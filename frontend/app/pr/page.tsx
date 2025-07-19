@@ -53,34 +53,40 @@ export default function PullRequestDashboard() {
       </div>
 
       <div className="grid gap-4">
-        {processedPrs.map((pr: PullRequest) => (
-          <Link
-            key={pr.id}
-            href={`/pr/${pr.number}?owner=${pr.user?.login ?? "unknown"}&repo=${
-              pr.repository ?? "unknown"
-            }`}
-            className="block bg-gray-800 border border-gray-700 rounded-lg p-6 hover:bg-gray-750 hover:border-gray-600 transition-colors"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="text-lg font-medium text-white mb-2">
-                  {pr.title}
-                </h3>
-                <div className="flex items-center gap-4 text-sm text-gray-400">
-                  <span className="font-mono">{pr.repository}</span>
-                  <span>#{pr.number}</span>
+        {processedPrs.map((pr: PullRequest) => {
+          // Parse repository information correctly
+          // If repository contains slash, it's in format "owner/repo"
+          const [repoOwner, repoName] = pr.repository?.includes("/")
+            ? pr.repository.split("/")
+            : ["unknown", pr.repository ?? "unknown"];
+
+          return (
+            <Link
+              key={pr.id}
+              href={`/pr/${pr.number}?owner=${repoOwner}&repo=${repoName}`}
+              className="block bg-gray-800 border border-gray-700 rounded-lg p-6 hover:bg-gray-750 hover:border-gray-600 transition-colors"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="text-lg font-medium text-white mb-2">
+                    {pr.title}
+                  </h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <span className="font-mono">{pr.repository}</span>
+                    <span>#{pr.number}</span>
+                  </div>
                 </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                    pr.state
+                  )}`}
+                >
+                  {pr.state}
+                </span>
               </div>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                  pr.state
-                )}`}
-              >
-                {pr.state}
-              </span>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
 
       {processedPrs.length === 0 && (

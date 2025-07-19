@@ -66,7 +66,8 @@ export const approveFix = async (
   owner: string,
   repo: string,
   filePath: string,
-  newContent: string
+  newContent: string,
+  pullNumber: number
 ) => {
   try {
     const response = await axios.post(
@@ -76,6 +77,7 @@ export const approveFix = async (
         repo,
         filePath,
         newContent,
+        pullNumber,
       },
       {
         headers: {

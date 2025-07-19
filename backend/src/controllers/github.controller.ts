@@ -175,21 +175,73 @@ export const getPullRequests = async (req: Request, res: Response) => {
 };
 
 export const approveFix = async (req: Request, res: Response) => {
-  const { owner, repo, filePath, newContent } = req.body;
+  const { owner, repo, filePath, newContent, pullNumber } = req.body;
 
-  if (!owner || !repo || !filePath || !newContent) {
-    return res.status(400).json({ error: "Missing required parameters" });
+  if (!owner || !repo || !filePath || !newContent || !pullNumber) {
+    return res
+      .status(400)
+      .json({
+        error:
+          "Missing required parameters: owner, repo, filePath, newContent, pullNumber",
+      });
   }
 
   try {
-    const githubService = new GithubService(
-      req.headers.authorization as string
-    );
+    // Extract token from Authorization header (remove 'Bearer ' prefix)
+    const authHeader = req.headers.authorization as string;
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.substring(7)
+      : authHeader;
+
+    if (!token) {
+      return res.status(401).json({ error: "No authorization token provided" });
+    }
+
+    // First, verify token has required permissions
+    try {
+      const tokenCheck = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (!tokenCheck.ok) {
+        return res.status(401).json({ error: "Invalid or expired token" });
+      }
+
+      // Check if we can access the specific repository
+      const repoCheck = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}`,
+        {
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!repoCheck.ok) {
+        return res.status(403).json({
+          error: "Insufficient permissions to access repository",
+          details: `Cannot access ${owner}/${repo}. Please ensure the OAuth app has access to this repository and the token has 'repo' scope.`,
+        });
+      }
+    } catch (permError) {
+      console.error("Permission check failed:", permError);
+      return res.status(403).json({
+        error: "Permission verification failed",
+        details: "Please re-authenticate to ensure proper repository access.",
+      });
+    }
+
+    const githubService = new GithubService(token);
     const result = await githubService.applyCodeFix(
       owner,
       repo,
       filePath,
-      newContent
+      newContent,
+      pullNumber
     );
 
     if (result) {
